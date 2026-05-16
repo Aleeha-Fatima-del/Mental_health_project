@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mental Health Companion</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, serif;
+    background: #f4f1ec;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    color: #2a2a2a;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+
+  /* ── NAV TABS ── */
+  .tabs {
+    display: flex; gap: 0; margin-bottom: 2rem;
+    border: 1px solid #d5cfc6; border-radius: 10px;
+    overflow: hidden; background: #fff;
+  }
+  .tab {
+    flex: 1; padding: 11px; text-align: center;
+    font-size: 14px; font-family: system-ui, sans-serif;
+    cursor: pointer; color: #888; background: #fff;
+    border: none; transition: all 0.18s;
+    border-right: 1px solid #d5cfc6;
+  }
+  .tab:last-child { border-right: none; }
+  .tab.active { background: #2a2a2a; color: #f4f1ec; }
+  .tab:hover:not(.active) { background: #f4f1ec; color: #2a2a2a; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── TYPOGRAPHY ── */
+  h1 { font-size: 26px; font-weight: normal; color: #2a2a2a; margin-bottom: 5px; letter-spacing: -0.5px; }
+  .tagline { font-size: 14px; color: #888; margin-bottom: 1.75rem; font-family: system-ui, sans-serif; }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #aaa; margin-bottom: 10px;
+    font-family: system-ui, sans-serif;
+  }
+
+  /* ── FORM ELEMENTS ── */
+  .field { margin-bottom: 1.1rem; }
+  .field label {
+    display: block; font-size: 13px; color: #666;
+    margin-bottom: 5px; font-family: system-ui, sans-serif;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%; border: 1.5px solid #d5cfc6; border-radius: 9px;
+    padding: 10px 13px; font-size: 14px; font-family: system-ui, sans-serif;
+    background: #fff; color: #2a2a2a; outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #a89880; }
+  .field textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+  .field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    width: 100%; padding: 12px; background: #2a2a2a; color: #f4f1ec;
+    border: none; border-radius: 10px; font-size: 15px;
+    font-family: Georgia, serif; cursor: pointer;
+    transition: background 0.2s, transform 0.1s; letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+  .btn:hover { background: #444; }
+  .btn:active { transform: scale(0.99); }
+  .btn:disabled { background: #bbb; cursor: not-allowed; }
+  .btn.outline {
+    background: #fff; color: #2a2a2a;
+    border: 1.5px solid #d5cfc6; margin-top: 8px;
+  }
+  .btn.outline:hover { background: #f4f1ec; }
+
+  /* ── PROFILE CARD (display mode) ── */
+  .profile-card {
+    background: #fff; border: 1px solid #e5e0d8;
+    border-radius: 13px; padding: 1.4rem 1.5rem; margin-bottom: 1rem;
+  }
+  .profile-top {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 1.2rem;
+  }
+  .avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: #2a2a2a; color: #f4f1ec;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-family: system-ui, sans-serif; font-weight: 500;
+    flex-shrink: 0;
+  }
+  .profile-name { font-size: 20px; font-weight: normal; color: #2a2a2a; }
+  .profile-sub { font-size: 13px; color: #999; margin-top: 2px; font-family: system-ui, sans-serif; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+  .info-box {
+    background: #f9f7f4; border-radius: 9px; padding: 11px 13px;
+  }
+  .info-box .lbl { font-size: 11px; color: #aaa; font-family: system-ui, sans-serif; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .info-box .val { font-size: 14px; color: #2a2a2a; font-family: system-ui, sans-serif; line-height: 1.5; }
+  .info-box.full { grid-column: span 2; }
+  .empty-profile {
+    text-align: center; padding: 2.5rem 1rem;
+    background: #fff; border: 1px dashed #d5cfc6;
+    border-radius: 13px; color: #bbb;
+    font-family: system-ui, sans-serif; font-size: 14px;
+  }
+  .empty-profile .icon { font-size: 36px; margin-bottom: 10px; }
+
+  /* ── ANALYZE PAGE ── */
+  .user-greeting {
+    background: #fff; border: 1px solid #e5e0d8; border-radius: 10px;
+    padding: 10px 14px; margin-bottom: 1.2rem;
+    font-family: system-ui, sans-serif; font-size: 13px; color: #666;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .user-greeting .name { color: #2a2a2a; font-weight: 500; }
+
+  textarea#inp {
+    width: 100%; border: 1.5px solid #d5cfc6; border-radius: 10px;
+    padding: 14px 16px; font-size: 15px; font-family: Georgia, serif;
+    background: #fff; color: #2a2a2a; resize: vertical; min-height: 100px;
+    outline: none; transition: border-color 0.2s; line-height: 1.6;
+  }
+  textarea#inp:focus { border-color: #a89880; }
+  textarea#inp::placeholder { color: #bbb; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 1rem; }
+  .chip {
+    font-size: 12px; padding: 5px 13px; border: 1px solid #d5cfc6;
+    border-radius: 20px; cursor: pointer; background: #fff; color: #666;
+    font-family: system-ui, sans-serif; transition: all 0.15s;
+  }
+  .chip:hover { background: #2a2a2a; color: #f4f1ec; border-color: #2a2a2a; }
+
+  /* ── RESULT CARDS ── */
+  #output { margin-top: 1.75rem; }
+  .loading { text-align: center; padding: 2rem; color: #888; font-size: 15px; font-family: system-ui, sans-serif; }
+  .card { background: #fff; border: 1px solid #e5e0d8; border-radius: 12px; padding: 1.4rem 1.5rem; margin-bottom: 1rem; }
+  .condition-name { font-size: 21px; font-weight: normal; color: #2a2a2a; margin-bottom: 4px; }
+  .condition-sub { font-size: 13px; color: #999; margin-bottom: 1.2rem; font-family: system-ui, sans-serif; }
+  .block { border-radius: 9px; padding: 14px 16px; margin-bottom: 10px; font-size: 14px; line-height: 1.75; font-family: system-ui, sans-serif; }
+  .block-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .diagnose { background: #fdf6ec; border-left: 3px solid #d4a853; }
+  .diagnose .block-title { color: #a07020; }
+  .treatment { background: #edf5fb; border-left: 3px solid #5b9ec9; }
+  .treatment .block-title { color: #2a5f8a; }
+  .why { background: #f0f7f0; border-left: 3px solid #6aaa6a; }
+  .why .block-title { color: #2e6b2e; }
+  .meds-note { background: #fdf0f8; border-left: 3px solid #c97ab8; border-radius: 9px; padding: 12px 15px; font-size: 13px; font-family: system-ui, sans-serif; color: #7a3a6e; margin-top: 8px; line-height: 1.6; }
+
+  .disclaimer { font-size: 12px; color: #aaa; text-align: center; margin-top: 1.5rem; font-family: system-ui, sans-serif; font-style: italic; }
+
+  .save-toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #2a2a2a; color: #f4f1ec; padding: 10px 22px;
+    border-radius: 30px; font-size: 13px; font-family: system-ui, sans-serif;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
+  }
+  .save-toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Mental Health Companion</h1>
+  <p class="tagline">Describe how you feel — get a clear diagnosis, treatment, and explanation.</p>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('analyze')">🧠 Analyze</button>
+    <button class="tab" onclick="switchTab('profile')">👤 My Profile</button>
+  </div>
+
+  <!-- ══════════════ ANALYZE PAGE ══════════════ -->
+  <div id="page-analyze" class="page active">
+
+    <div id="greeting" style="display:none" class="user-greeting">
+      👋 Hello, <span class="name" id="greet-name"></span> — describe how you're feeling today.
+    </div>
+
+    <div class="chips">
+      <span class="chip" onclick="fill(this)">I feel anxious all the time</span>
+      <span class="chip" onclick="fill(this)">low energy, very sad</span>
+      <span class="chip" onclick="fill(this)">can't sleep, overthinking</span>
+      <span class="chip" onclick="fill(this)">mood swings</span>
+      <span class="chip" onclick="fill(this)">no appetite, hopeless</span>
+      <span class="chip" onclick="fill(this)">panic attacks</span>
+    </div>
+
+    <textarea id="inp" placeholder="e.g. I feel very anxious, can't sleep, always overthinking and low energy..."></textarea>
+    <button class="btn" id="btn" onclick="go()">Analyze →</button>
+
+    <div id="output"></div>
+
+    <p class="disclaimer">⚕ This information is for educational purposes only — not a medical diagnosis. Please consult a qualified mental health professional for personalized care.</p>
+  </div>
+
+  <!-- ══════════════ PROFILE PAGE ══════════════ -->
+  <div id="page-profile" class="page">
+
+    <!-- VIEW MODE -->
+    <div id="profile-view">
+      <div id="profile-display"></div>
+      <button class="btn outline" onclick="showEditMode()">✏️ Edit Profile</button>
+    </div>
+
+    <!-- EDIT MODE -->
+    <div id="profile-edit" style="display:none">
+      <p class="section-label" style="margin-bottom:14px;">Your Information</p>
+
+      <div class="row2">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="f-name" placeholder="e.g. Ahmed Ali">
+        </div>
+        <div class="field">
+          <label>Age</label>
+          <input type="number" id="f-age" placeholder="e.g. 24" min="1" max="120">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Gender</label>
+        <select id="f-gender">
+          <option value="">— Select —</option>
+          <option>Male</option>
+          <option>Female</option>
+          <option>Non-binary</option>
+          <option>Prefer not to say</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Medical History / Past Conditions</label>
+        <textarea id="f-history" placeholder="e.g. Diagnosed with depression in 2021, history of anxiety..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Current Medications</label>
+        <textarea id="f-meds" placeholder="e.g. Sertraline 50mg daily, Vitamin D..."></textarea>
+      </div>
+
+      <button class="btn" onclick="saveProfile()">Save Profile</button>
+      <button class="btn outline" onclick="cancelEdit()">Cancel</button>
+    </div>
+
+  </div>
+  <!-- end profile page -->
+
+</div>
+
+<div class="save-toast" id="toast">✓ Profile saved</div>
+
+<script>
+/* ── TAB SWITCHING ── */
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'profile') renderProfileView();
+}
+
+/* ── PROFILE STORAGE ── */
+function loadProfile() {
+  try { return JSON.parse(localStorage.getItem('mhc_profile')) || {}; } catch { return {}; }
+}
+function saveProfile() {
+  const p = {
+    name: document.getElementById('f-name').value.trim(),
+    age: document.getElementById('f-age').value.trim(),
+    gender: document.getElementById('f-gender').value,
+    history: document.getElementById('f-history').value.trim(),
+    meds: document.getElementById('f-meds').value.trim(),
+  };
+  localStorage.setItem('mhc_profile', JSON.stringify(p));
+  showEditMode(false);
+  renderProfileView();
+  updateGreeting();
+  showToast('✓ Profile saved');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function showEditMode(show = true) {
+  document.getElementById('profile-view').style.display = show ? 'none' : 'block';
+  document.getElementById('profile-edit').style.display = show ? 'block' : 'none';
+  if (show) {
+    const p = loadProfile();
+    document.getElementById('f-name').value = p.name || '';
+    document.getElementById('f-age').value = p.age || '';
+    document.getElementById('f-gender').value = p.gender || '';
+    document.getElementById('f-history').value = p.history || '';
+    document.getElementById('f-meds').value = p.meds || '';
+  }
+}
+function cancelEdit() { showEditMode(false); renderProfileView(); }
+
+function initials(name) {
+  if (!name) return '?';
+  return name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function renderProfileView() {
+  const p = loadProfile();
+  const el = document.getElementById('profile-display');
+  if (!p.name && !p.age && !p.gender && !p.history && !p.meds) {
+    el.innerHTML = `<div class="empty-profile"><div class="icon">👤</div>No profile yet.<br>Click <strong>Edit Profile</strong> to add your information.</div>`;
+    return;
+  }
+  const subtitle = [p.age ? p.age + ' years' : '', p.gender].filter(Boolean).join(' · ');
+  el.innerHTML = `
+    <div class="profile-card">
+      <div class="profile-top">
+        <div class="avatar">${initials(p.name)}</div>
+        <div>
+          <div class="profile-name">${p.name || '—'}</div>
+          <div class="profile-sub">${subtitle || 'No details added'}</div>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="lbl">Age</div>
+          <div class="val">${p.age || '—'}</div>
+        </div>
+        <div class="info-box">
+          <div class="lbl">Gender</div>
+          <div class="val">${p.gender || '—'}</div>
+        </div>
+        <div class="info-box full">
+          <div class="lbl">Medical History</div>
+          <div class="val">${p.history || '—'}</div>
+        </div>
+        <div class="info-box full">
+          <div class="lbl">Current Medications</div>
+          <div class="val">${p.meds || '—'}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateGreeting() {
+  const p = loadProfile();
+  const g = document.getElementById('greeting');
+  const gn = document.getElementById('greet-name');
+  if (p.name) {
+    gn.textContent = p.name.split(' ')[0];
+    g.style.display = 'flex';
+  } else {
+    g.style.display = 'none';
+  }
+}
+
+/* ── ANALYZE ENGINE ── */
+function fill(el) { document.getElementById('inp').value = el.textContent; }
+
+const CONDITIONS = [
+  {
+    name: "Generalized Anxiety Disorder (GAD)",
+    keywords: ["anxious","anxiety","worry","worrying","overthinking","overthink","panic","nervous","fear","scared","restless","tense","uneasy","stressed","stress","racing thoughts","dread","on edge","apprehensive","frightened"],
+    diagnosis: "Your symptoms — persistent worry, overthinking, and restlessness — strongly suggest Generalized Anxiety Disorder. GAD is characterized by excessive, hard-to-control worry about everyday things that disrupts normal functioning. It affects approximately 3-4% of the global population and is one of the most common mental health conditions.",
+    treatment: "Cognitive Behavioral Therapy (CBT) is the most effective treatment — it helps rewire negative thought patterns. Deep breathing exercises, progressive muscle relaxation, and daily mindfulness meditation provide real relief. Regular aerobic exercise (30 min/day) significantly reduces anxiety levels. In some cases, doctors may prescribe SSRIs or SNRIs for short-term support alongside therapy.",
+    why: "Anxiety occurs when the brain's amygdala — its alarm system — becomes overactive and sends danger signals even without a real threat. This triggers the fight-or-flight response, releasing cortisol and adrenaline, causing physical symptoms like racing heart, tension, and restlessness. Over time, the brain gets stuck in this high-alert loop, making it hard to relax even when everything is fine."
+  },
+  {
+    name: "Major Depressive Disorder (MDD)",
+    keywords: ["sad","sadness","depressed","depression","hopeless","hopelessness","worthless","empty","numb","crying","cry","no energy","low energy","tired","exhausted","fatigue","no motivation","unmotivated","no interest","no joy","meaningless","dark","miserable","gloomy","joyless","flat","down"],
+    diagnosis: "Your description — low energy, sadness, hopelessness, and loss of motivation — points to Major Depressive Disorder. MDD is more than ordinary sadness; it is a clinical condition that affects mood, thinking, sleep, appetite, and energy simultaneously. It affects approximately 280 million people globally and is highly treatable.",
+    treatment: "Talk therapy, especially CBT or Interpersonal Therapy, is highly effective. Antidepressants such as SSRIs (sertraline, fluoxetine) work well in combination with therapy and are prescribed by a doctor. Daily structure, morning sunlight exposure, light exercise, and maintaining social connection all meaningfully help recovery. Avoiding isolation is critical — it significantly worsens depression.",
+    why: "Depression is linked to imbalances in brain chemicals — particularly serotonin, dopamine, and norepinephrine — which regulate mood, pleasure, and energy. The prefrontal cortex becomes underactive while stress hormone cortisol stays elevated. This combination drains energy, distorts thinking negatively, and suppresses the ability to feel pleasure or motivation."
+  },
+  {
+    name: "Insomnia / Sleep Disorder",
+    keywords: ["can't sleep","insomnia","sleep","sleepless","awake","lying awake","tossing","turning","nightmares","bad dreams","no sleep","poor sleep","wake up","waking up","sleep problems","disturbed sleep","restless sleep","tired in morning","can't fall asleep","wide awake"],
+    diagnosis: "Your symptoms indicate a sleep disorder, most likely insomnia — difficulty falling asleep, staying asleep, or getting restorative rest. Insomnia often coexists with anxiety or depression and creates a harmful cycle where poor sleep worsens mood, and low mood worsens sleep. It affects up to 30% of adults at some point.",
+    treatment: "CBT for Insomnia (CBT-I) is the gold-standard treatment — more effective than sleep medication long-term. Practice strict sleep hygiene: fixed wake time daily, no screens 1 hour before bed, dark and cool room, avoid caffeine after noon. The 4-7-8 breathing technique helps the body relax into sleep. Avoid sleeping pills as a long-term solution.",
+    why: "Sleep is regulated by the circadian rhythm and a chemical called adenosine that builds sleep pressure throughout the day. Anxiety and stress elevate cortisol, which overrides natural sleep signals and keeps the brain in alert mode. Irregular schedules, blue light from screens, and stimulants all suppress melatonin production, making it progressively harder to fall and stay asleep."
+  },
+  {
+    name: "Bipolar Disorder",
+    keywords: ["mood swings","mood swing","highs and lows","high and low","manic","mania","euphoric","euphoria","impulsive","reckless","grandiose","sudden energy","no sleep needed","irritable","irritability","extreme mood","bipolar","on top of world","crashing","up and down"],
+    diagnosis: "Your description of extreme mood swings — alternating between very high energy or euphoria and low depressed states — suggests Bipolar Disorder. There are two types: Bipolar I (full manic episodes) and Bipolar II (hypomania plus depression). It affects around 1% of the population and is very manageable with consistent treatment.",
+    treatment: "Mood-stabilizing medications such as lithium, valproate, or lamotrigine are the cornerstone of treatment prescribed by a psychiatrist. Psychoeducation helps recognize early warning signs. Maintaining a very regular sleep schedule is critical — sleep disruption is the most common episode trigger. Therapy helps manage the emotional impact on daily life.",
+    why: "Bipolar disorder involves dysregulation of brain circuits controlling mood, energy, and reward. During manic phases, dopamine activity surges dramatically causing elevated mood, reduced need for sleep, and impulsive behavior. During depressive phases, these systems crash. Genetics play a strong role and it involves measurable structural differences in the brain's mood-regulation pathways."
+  },
+  {
+    name: "Panic Disorder",
+    keywords: ["panic attack","panic","heart pounding","heart racing","chest pain","chest tight","can't breathe","shortness of breath","dizziness","dizzy","trembling","shaking","sweating","feeling like dying","fear of dying","losing control","sudden fear","terror","overwhelming fear","palpitations"],
+    diagnosis: "Your symptoms — sudden intense fear, heart pounding, chest tightness, and feeling like something terrible is about to happen — are classic signs of Panic Disorder. Panic attacks are episodes of intense fear that peak within 10 minutes. They feel frightening but are not medically dangerous. They affect around 2-3% of people and respond very well to treatment.",
+    treatment: "CBT is the most effective treatment, particularly Interoceptive Exposure — learning to tolerate body sensations without fear. Controlled breathing stops attacks quickly: breathe in for 4 counts, hold for 4, exhale slowly for 6. SSRIs and short-term benzodiazepines can be prescribed. Avoiding caffeine and gradually facing feared situations rather than avoiding them is essential.",
+    why: "Panic attacks are caused by a false alarm from the amygdala — the brain's threat detector fires intensely even when no real danger exists. This triggers a massive adrenaline surge causing every physical symptom: racing heart, shortness of breath, dizziness, and chest tightness. Fearing the panic itself creates more panic — a loop CBT is specifically designed to break."
+  },
+  {
+    name: "Chronic Stress / Burnout",
+    keywords: ["stressed","stress","burnout","burnt out","overwhelmed","overworked","too much","can't cope","pressure","work stress","no time","drained","depleted","emotionally exhausted","tired of everything","fed up","breaking point","can't handle","at my limit","running on empty"],
+    diagnosis: "Your symptoms suggest Chronic Stress or Burnout — complete mental, physical, and emotional exhaustion from prolonged stress without adequate recovery. Burnout is especially common in high-demand work environments or caregiving situations. It has serious health consequences if left unaddressed.",
+    treatment: "The primary treatment is deliberate rest, recovery, and setting firm boundaries. Identify and reduce the primary stressors where possible. Reintroduce activities that restore your energy: hobbies, time in nature, social connection. Mindfulness-Based Stress Reduction (MBSR) is clinically proven to help. If severe, taking structured time off and working with a therapist is strongly advised.",
+    why: "Burnout occurs when the stress response system runs continuously without adequate recovery. The body maintains high cortisol levels chronically, depleting neurotransmitters like serotonin and dopamine over time. The prefrontal cortex — responsible for motivation, focus, and emotional regulation — becomes progressively impaired. This is why everything feels impossible during burnout — it is a physiological state, not a weakness."
+  },
+  {
+    name: "Low Self-Esteem / Negative Self-Perception",
+    keywords: ["worthless","useless","failure","hate myself","self hate","not good enough","ugly","stupid","no confidence","insecure","shame","guilty","guilt","embarrassed","can't do anything right","nobody likes me","alone","lonely","isolated","rejected","inferior","inadequate","loser"],
+    diagnosis: "Your description reflects significant negative self-perception — persistent feelings of worthlessness, shame, or inadequacy. These feelings often occur alongside depression or anxiety but can also exist independently. They are extremely common and are not an accurate reflection of reality — they are symptoms of a mental state that responds very well to treatment.",
+    treatment: "CBT is highly effective at identifying and challenging negative core beliefs. Compassion-Focused Therapy (CFT) specifically targets shame and self-criticism. Practical daily habits help: journaling three small wins each day, practicing self-compassion, reducing social comparison. Building one consistent positive routine — exercise, a skill, a creative outlet — genuinely improves self-worth over time.",
+    why: "Negative self-beliefs are learned — often from past experiences, criticism, or trauma — and become deeply ingrained neural pathways the brain defaults to automatically. The brain's negativity bias pays disproportionate attention to perceived failures. Low serotonin also affects how we perceive our social standing. These pathways are highly plastic and can be rewired with consistent, guided practice."
+  }
+];
+
+const FALLBACK = {
+  name: "General Emotional Distress",
+  diagnosis: "Based on your description, you appear to be experiencing some form of emotional or psychological difficulty. While a specific condition cannot be pinpointed from your words alone, what you are feeling is real and valid. Mental health exists on a spectrum and many people experience periods of difficulty that deserve care and attention.",
+  treatment: "Start with the foundations that support all mental health: regular sleep (7-9 hours), daily movement, nutritious food, and human connection. Consider speaking to a mental health professional — a therapist can identify what is happening and build a plan with you. Journaling your feelings each day is a powerful first step toward gaining clarity.",
+  why: "Emotional distress can arise from many causes — accumulated stress, life changes, unresolved experiences, biological factors, or simply the brain needing more support than usual. The mind and body are deeply connected, and emotional pain has real physiological effects. Reaching out for understanding and support is always the correct first step."
+};
+
+function matchCondition(text) {
+  const lower = text.toLowerCase();
+  let best = null, bestScore = 0;
+  for (const c of CONDITIONS) {
+    let score = 0;
+    for (const kw of c.keywords) { if (lower.includes(kw)) score++; }
+    if (score > bestScore) { bestScore = score; best = c; }
+  }
+  return { match: bestScore > 0 ? best : FALLBACK, score: bestScore };
+}
+
+function go() {
+  const inp = document.getElementById('inp').value.trim();
+  if (!inp) return;
+  const btn = document.getElementById('btn');
+  btn.disabled = true; btn.textContent = 'Analyzing...';
+  document.getElementById('output').innerHTML = '<div class="loading">🧠 Analyzing your input...</div>';
+
+  setTimeout(() => {
+    const { match, score } = matchCondition(inp);
+    const p = loadProfile();
+
+    const confidence = score >= 3 ? "Strong match based on your description" :
+                       score >= 1 ? "Possible match based on your description" :
+                       "General concern — consider speaking to a professional";
+
+    // medication note if user has meds on profile
+    let medsNote = '';
+    if (p.meds) {
+      medsNote = `<div class="meds-note">💊 <strong>Note from your profile:</strong> You are currently taking <em>${p.meds}</em>. Please inform your doctor about these when discussing any new treatment options.</div>`;
+    }
+
+    // history note
+    let historyNote = '';
+    if (p.history) {
+      historyNote = `<div class="meds-note" style="background:#f0f4ff;border-left-color:#6a8ac9;color:#2a3a6e;margin-top:8px;">📋 <strong>Your medical history:</strong> ${p.history} — your doctor may want to consider this context.</div>`;
+    }
+
+    document.getElementById('output').innerHTML = `
+      <div class="card">
+        <p class="condition-name">${match.name}</p>
+        <p class="condition-sub">${confidence}</p>
+
+        <p class="section-label">Possible Diagnosis</p>
+        <div class="block diagnose">
+          <div class="block-title">🔍 What this looks like</div>
+          ${match.diagnosis}
+        </div>
+
+        <p class="section-label" style="margin-top:1rem;">Treatment</p>
+        <div class="block treatment">
+          <div class="block-title">💊 What helps</div>
+          ${match.treatment}
+        </div>
+        ${medsNote}
+        ${historyNote}
+
+        <p class="section-label" style="margin-top:1rem;">Why this happens</p>
+        <div class="block why">
+          <div class="block-title">🧬 The explanation</div>
+          ${match.why}
+        </div>
+      </div>`;
+
+    btn.disabled = false; btn.textContent = 'Analyze →';
+  }, 700);
+}
+
+document.getElementById('inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); }
+});
+
+/* ── INIT ── */
+renderProfileView();
+updateGreeting();
+</script>
+</body>
+</html>
